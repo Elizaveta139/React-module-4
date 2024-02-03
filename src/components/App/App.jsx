@@ -1,97 +1,31 @@
-import { useState, useEffect } from 'react';
-// import axios from 'axios';
-import { Toaster } from 'react-hot-toast';
-import { fetchImages } from '../imagesApi';
-import { SearchBar } from '../SearchBar/SearchBar';
-import { ImageGallery } from '../ImageGallery/ImageGallery';
-import { Loader } from '../Loader/Loader';
-import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
-import { ErrorNoImages } from '../ErrorNoImages/ErrorNoImages';
-import { LoadMoreBtn } from '../LoadMoreBtn/LoadMoreBtn';
-import { ImageModal } from '../ImageModal/ImageModal';
+import { Routes, Route } from 'react-router-dom';
+import Home from '../../pages/Home';
+import About from '../../pages/About';
+import Products from '../../pages/Products';
+import ProductDetails from '../../pages/ProductDetails';
+import NotFound from '../../pages/NotFound';
+import { AppBar } from '../AppBar/AppBar';
+import { Mission } from '../Mission/Mission';
+import { Team } from '../Team/Team';
+import { Reviews } from '../Reviews/Reviews';
+import css from './App.module.css';
 
-import './App.module.css';
-
-export function App() {
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [totalPage, setTotalPage] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalInfo, setModalInfo] = useState({
-    urls: '',
-    description: '',
-    likes: '',
-    user: '',
-  });
-
-  console.log('images', images);
-
-  async function searchImages(newQuery) {
-    setQuery(`${Date.now()}/${newQuery}`);
-    setPage(1);
-    setImages([]);
-    setTotalPage(null);
-    setIsModalOpen(false);
-  }
-
-  function handleLoadMore() {
-    setPage(page + 1);
-  }
-
-  useEffect(() => {
-    if (query === '') {
-      return;
-    }
-
-    async function componentUpdate() {
-      try {
-        setLoading(true);
-        setError(false);
-
-        let fetchedData = await fetchImages(query.split('/')[1], page);
-        setTotalPage(fetchedData.total_pages);
-        console.log('hhh', fetchedData.total_pages);
-        setImages(prevImages => [...prevImages, ...fetchedData.results]);
-      } catch (error) {
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    componentUpdate();
-  }, [query, page]);
-
-  function openModal(image) {
-    setIsModalOpen(true);
-
-    const { urls, description, likes, user } = image;
-    setModalInfo({ urls, description, likes, user });
-  }
-
-  console.log('setRegularImg', modalInfo);
-
-  function closeModal() {
-    setIsModalOpen(false);
-  }
-
+export const App = () => {
   return (
-    <>
-      <SearchBar onSearch={searchImages} />
-      {images.length > 0 && <ImageGallery images={images} openModal={openModal} />}
-      {loading && <Loader onLoading={loading} />}
-      {totalPage === 0 && <ErrorNoImages />}
-      {error && <ErrorMessage />}
-      {images.length > 0 && !loading && totalPage / 21 > page && (
-        <LoadMoreBtn onClick={handleLoadMore} />
-      )}
-      {isModalOpen && (
-        <ImageModal closeModal={closeModal} isModalOpen={isModalOpen} modalInfo={modalInfo} />
-      )}
-      <Toaster position="top-right" />
-    </>
+    <div className={css.container}>
+      <AppBar />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />}>
+          <Route path="mission" element={<Mission />} />
+          <Route path="team" element={<Team />} />
+          <Route path="reviews" element={<Reviews />} />
+        </Route>
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   );
-}
+};
